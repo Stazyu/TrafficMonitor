@@ -1,167 +1,126 @@
 name: Release CI
+
 on:
   push:
-    tags: ['v*']
+    tags:
+      - "v*"
   workflow_dispatch:
 
 jobs:
-  x64_build:
+  build:
     runs-on: windows-latest
 
-    steps:
-    - uses: actions/checkout@v3
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: x86
+            output: Bin/Release (lite)
+            arm64: false
 
-    - name: Install MFC v143 Libraries
-      run: |
-        $vsPath = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -property installationPath
-        $vsInstaller = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vs_installer.exe"
-        
-        $process = Start-Process -FilePath $vsInstaller -ArgumentList @(
-          "modify",
-          "--installPath", "`"$vsPath`"",
-          "--add", "Microsoft.VisualStudio.Component.VC.v143.x86.x64",
-          "--add", "Microsoft.VisualStudio.Component.VC.v143.MFC",
-          "--noUpdateInstaller",
-          "--passive",
-          "--norestart"
-        ) -PassThru -Wait
+          - platform: x64
+            output: Bin/x64/Release (lite)
+            arm64: false
 
-        if ($process.ExitCode -ne 0 -and $process.ExitCode -ne 3010) {
-          Write-Error "VS Installer failed with exit code $($process.ExitCode)"
-          exit $process.ExitCode
-        }
-
-    - name: Add msbuild to PATH
-      uses: microsoft/setup-msbuild@v2
-
-    - name: Run msbuild
-      run: msbuild TrafficMonitor_Lite.sln -p:configuration="Release (lite)" -p:platform=x64 -p:platformToolset=v143
-
-    - name: Get current time
-      uses: josStorer/get-current-time@v2.0.2
-      id: current-time
-      with:
-        format: YYYYMMDD_HHmmss
-        utcOffset: "+08:00"
-
-    - name: Upload artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: x64_${{ steps.current-time.outputs.formattedTime }}_TrafficMonitor
-        path: |
-          Bin/x64/Release (lite)/TrafficMonitor.exe
-          Bin/x64/Release (lite)/*.dll
-
-    - name: Upload pdb files
-      uses: actions/upload-artifact@v4
-      with:
-        name: x64_${{ steps.current-time.outputs.formattedTime }}_pdb
-        path: Bin/x64/Release (lite)/*.pdb
-
-  x86_build:
-    runs-on: windows-latest
+          - platform: ARM64EC
+            output: Bin/ARM64EC/Release (lite)
+            arm64: true
 
     steps:
-    - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-    - name: Install MFC v143 Libraries
-      run: |
-        $vsPath = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -property installationPath
-        $vsInstaller = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vs_installer.exe"
-        
-        $process = Start-Process -FilePath $vsInstaller -ArgumentList @(
-          "modify",
-          "--installPath", "`"$vsPath`"",
-          "--add", "Microsoft.VisualStudio.Component.VC.v143.x86.x64",
-          "--add", "Microsoft.VisualStudio.Component.VC.v143.MFC",
-          "--noUpdateInstaller",
-          "--passive",
-          "--norestart"
-        ) -PassThru -Wait
+      - name: Locate Visual Studio
+        id: vs
+        shell: pwsh
+        run: |
+          $vs = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" `
+            -latest `
+            -products * `
+            -property installationPath
 
-        if ($process.ExitCode -ne 0 -and $process.ExitCode -ne 3010) {
-          Write-Error "VS Installer failed with exit code $($process.ExitCode)"
-          exit $process.ExitCode
-        }
+          if (-not $vs) {
+            throw "Visual Studio not found."
+          }
 
-    - name: Add msbuild to PATH
-      uses: microsoft/setup-msbuild@v2
+          echo "path=$vs" >> $env:GITHUB_OUTPUT
 
-    - name: Run msbuild
-      run: msbuild TrafficMonitor_Lite.sln -p:configuration="Release (lite)" -p:platform=x86 -p:platformToolset=v143
+      - name: Install Visual Studio Components
+        shell: pwsh
+        run: |
+          $args = @(
+            "modify",
+            "--installPath","${{ steps.vs.outputs.path }}",
 
-    - name: Get current time
-      uses: josStorer/get-current-time@v2.0.2
-      id: current-time
-      with:
-        format: YYYYMMDD_HHmmss
-        utcOffset: "+08:00"
+            "--add","Microsoft.VisualStudio.Workload.NativeDesktop",
 
-    - name: Upload artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: x86_${{ steps.current-time.outputs.formattedTime }}_TrafficMonitor
-        path: |
-          Bin/Release (lite)/TrafficMonitor.exe
-          Bin/Release (lite)/*.dll
+            "--add","Microsoft.VisualStudio.ComponentGroup.VC.Tools.143.x86.x64",
+            "--add","Microsoft.VisualStudio.Component.VC.ATLMFC",
 
-    - name: Upload pdb files
-      uses: actions/upload-artifact@v4
-      with:
-        name: x86_${{ steps.current-time.outputs.formattedTime }}_pdb
-        path: Bin/Release (lite)/*.pdb
+            "--includeRecommended",
+            "--includeOptional",
 
-  arm64ec_build:
-    runs-on: windows-latest
+            "--passive",
+            "--norestart"
+          )
 
-    steps:
-    - uses: actions/checkout@v3
+          if ("${{ matrix.arm64 }}" -eq "true") {
+            $args += "--add"
+            $args += "Microsoft.VisualStudio.Component.VC.Tools.ARM64"
 
-    - name: Install MFC v143 Libraries (ARM64EC)
-      run: |
-        $vsPath = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -property installationPath
-        $vsInstaller = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vs_installer.exe"
-        
-        $process = Start-Process -FilePath $vsInstaller -ArgumentList @(
-          "modify",
-          "--installPath", "`"$vsPath`"",
-          "--add", "Microsoft.VisualStudio.Component.VC.v143.x86.x64",
-          "--add", "Microsoft.VisualStudio.Component.VC.v143.MFC",
-          "--add", "Microsoft.VisualStudio.Component.VC.v143.ARM64",
-          "--add", "Microsoft.VisualStudio.Component.VC.v143.MFC.ARM64",
-          "--noUpdateInstaller",
-          "--passive",
-          "--norestart"
-        ) -PassThru -Wait
+            $args += "--add"
+            $args += "Microsoft.VisualStudio.Component.VC.MFC.ARM64"
+          }
 
-        if ($process.ExitCode -ne 0 -and $process.ExitCode -ne 3010) {
-          Write-Error "VS Installer failed with exit code $($process.ExitCode)"
-          exit $process.ExitCode
-        }
+          $installer = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vs_installer.exe"
 
-    - name: Add msbuild to PATH
-      uses: microsoft/setup-msbuild@v2
+          $process = Start-Process `
+            -FilePath $installer `
+            -ArgumentList $args `
+            -Wait `
+            -PassThru
 
-    - name: Run msbuild
-      run: msbuild TrafficMonitor_Lite.sln -p:configuration="Release (lite)" -p:platform=ARM64EC -p:platformToolset=v143
+          if ($process.ExitCode -ne 0 -and $process.ExitCode -ne 3010) {
+            throw "VS Installer failed: $($process.ExitCode)"
+          }
 
-    - name: Get current time
-      uses: josStorer/get-current-time@v2.0.2
-      id: current-time
-      with:
-        format: YYYYMMDD_HHmmss
-        utcOffset: "+08:00"
+      - name: Verify MFC
+        shell: pwsh
+        run: |
+          $msvc = Get-ChildItem "${{ steps.vs.outputs.path }}\VC\Tools\MSVC" |
+            Sort-Object Name -Descending |
+            Select-Object -First 1
 
-    - name: Upload artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: arm64EC_${{ steps.current-time.outputs.formattedTime }}_TrafficMonitor
-        path: |
-          Bin/ARM64EC/Release (lite)/TrafficMonitor.exe
-          Bin/ARM64EC/Release (lite)/*.dll
+          Get-ChildItem $msvc.FullName
 
-    - name: Upload pdb files
-      uses: actions/upload-artifact@v4
-      with:
-        name: arm64EC_${{ steps.current-time.outputs.formattedTime }}_pdb
-        path: Bin/ARM64EC/Release (lite)/*.pdb
+          if (-not (Test-Path "$($msvc.FullName)\atlmfc")) {
+            throw "MFC folder not found."
+          }
+
+      - uses: microsoft/setup-msbuild@v2
+
+      - name: Build
+        run: >
+          msbuild TrafficMonitor_Lite.sln
+          -m
+          -p:Configuration="Release (lite)"
+          -p:Platform=${{ matrix.platform }}
+          -p:PlatformToolset=v143
+
+      - uses: josStorer/get-current-time@v2
+        id: current-time
+        with:
+          format: YYYYMMDD_HHmmss
+          utcOffset: "+08:00"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.platform }}_${{ steps.current-time.outputs.formattedTime }}_TrafficMonitor
+          path: |
+            ${{ matrix.output }}/TrafficMonitor.exe
+            ${{ matrix.output }}/*.dll
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.platform }}_${{ steps.current-time.outputs.formattedTime }}_pdb
+          path: |
+            ${{ matrix.output }}/*.pdb
