@@ -13,9 +13,9 @@ jobs:
 
     - name: Install MFC v143 Libraries
       run: |
-        $vsPath = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -property installationPath
-        $vsInstaller = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vs_installer.exe"
-        Start-Process $vsInstaller -ArgumentList "modify --installPath `"$vsPath`" --add Microsoft.VisualStudio.Component.VC.v143.MFC --quiet --norestart --noUpdateInstaller" -Wait
+       $vsPath = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -property installationPath
+       $vsInstaller = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vs_installer.exe"
+       Start-Process $vsInstaller -ArgumentList "modify --installPath `"$vsPath`" --add Microsoft.VisualStudio.Component.VC.v143.MFC --quiet --norestart --wait" -Wait
 
     - name: Add msbuild to PATH
       uses: microsoft/setup-msbuild@v2
