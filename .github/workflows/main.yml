@@ -21,9 +21,8 @@ jobs:
           "--add", "Microsoft.VisualStudio.Component.VC.v143.x86.x64",
           "--add", "Microsoft.VisualStudio.Component.VC.v143.MFC",
           "--quiet",
-          "--norestart",
-          "--wait"
-        ) -NoNewWindow -PassThru -Wait
+          "--norestart"
+        ) -PassThru -Wait
         if ($process.ExitCode -ne 0) {
           Write-Error "VS Installer failed with exit code $($process.ExitCode)"
           exit $process.ExitCode
@@ -72,9 +71,8 @@ jobs:
           "--add", "Microsoft.VisualStudio.Component.VC.v143.x86.x64",
           "--add", "Microsoft.VisualStudio.Component.VC.v143.MFC",
           "--quiet",
-          "--norestart",
-          "--wait"
-        ) -NoNewWindow -PassThru -Wait
+          "--norestart"
+        ) -PassThru -Wait
         if ($process.ExitCode -ne 0) {
           Write-Error "VS Installer failed with exit code $($process.ExitCode)"
           exit $process.ExitCode
@@ -125,9 +123,8 @@ jobs:
           "--add", "Microsoft.VisualStudio.Component.VC.v143.ARM64",
           "--add", "Microsoft.VisualStudio.Component.VC.v143.MFC.ARM64",
           "--quiet",
-          "--norestart",
-          "--wait"
-        ) -NoNewWindow -PassThru -Wait
+          "--norestart"
+        ) -PassThru -Wait
         if ($process.ExitCode -ne 0) {
           Write-Error "VS Installer failed with exit code $($process.ExitCode)"
           exit $process.ExitCode
