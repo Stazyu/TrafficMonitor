@@ -47,40 +47,23 @@ jobs:
       - name: Install Visual Studio Components
         shell: pwsh
         run: |
-          $args = @(
-            "modify",
-            "--installPath","${{ steps.vs.outputs.path }}",
-
-            "--add","Microsoft.VisualStudio.Workload.NativeDesktop",
-
-            "--add","Microsoft.VisualStudio.ComponentGroup.VC.Tools.143.x86.x64",
-            "--add","Microsoft.VisualStudio.Component.VC.ATLMFC",
-
-            "--includeRecommended",
-            "--includeOptional",
-
-            "--passive",
-            "--norestart"
-          )
-
-          if ("${{ matrix.arm64 }}" -eq "true") {
-            $args += "--add"
-            $args += "Microsoft.VisualStudio.Component.VC.Tools.ARM64"
-
-            $args += "--add"
-            $args += "Microsoft.VisualStudio.Component.VC.MFC.ARM64"
-          }
-
+          $vs = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" `
+            -latest `
+            -property installationPath
+      
           $installer = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vs_installer.exe"
-
-          $process = Start-Process `
-            -FilePath $installer `
-            -ArgumentList $args `
-            -Wait `
-            -PassThru
-
-          if ($process.ExitCode -ne 0 -and $process.ExitCode -ne 3010) {
-            throw "VS Installer failed: $($process.ExitCode)"
+      
+          & $installer `
+            modify `
+            --installPath "$vs" `
+            --add Microsoft.VisualStudio.Component.VC.ATLMFC `
+            --passive `
+            --norestart
+      
+          Write-Host "ExitCode=$LASTEXITCODE"
+      
+          if ($LASTEXITCODE -ne 0 -and $LASTEXITCODE -ne 3010) {
+            throw "Installer failed."
           }
 
       - name: Verify MFC
