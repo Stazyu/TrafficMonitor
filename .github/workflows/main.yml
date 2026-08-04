@@ -14,7 +14,9 @@ jobs:
 
     - name: Install MFC Libraries
       run: |
-        choco install visualstudio2022buildtools --package-parameters "--add Microsoft.VisualStudio.Workload.VCTools --add Microsoft.VisualStudio.Component.VC.MFC --passive --norestart"
+        $vsPath = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -property installationPath
+        $vsInstaller = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vs_installer.exe"
+        Start-Process $vsInstaller -ArgumentList "modify --installPath `"$vsPath`" --add Microsoft.VisualStudio.Component.VC.MFC --passive --norestart" -Wait
     - name: Add msbuild to PATH
       uses: microsoft/setup-msbuild@v2
       
@@ -47,7 +49,13 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
-      
+
+    - name: Install MFC Libraries
+      run: |
+        $vsPath = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -property installationPath
+        $vsInstaller = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vs_installer.exe"
+        Start-Process $vsInstaller -ArgumentList "modify --installPath `"$vsPath`" --add Microsoft.VisualStudio.Component.VC.MFC --passive --norestart" -Wait
+        
     - name: Add msbuild to PATH
       uses: microsoft/setup-msbuild@v2
       
@@ -80,6 +88,12 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+
+    - name: Install MFC Libraries
+      run: |
+        $vsPath = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -property installationPath
+        $vsInstaller = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vs_installer.exe"
+        Start-Process $vsInstaller -ArgumentList "modify --installPath `"$vsPath`" --add Microsoft.VisualStudio.Component.VC.MFC --passive --norestart" -Wait
       
     - name: Add msbuild to PATH
       uses: microsoft/setup-msbuild@v2
