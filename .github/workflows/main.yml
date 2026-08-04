@@ -5,32 +5,32 @@ on:
   workflow_dispatch:
 
 jobs:
-
   x64_build:
     runs-on: windows-latest
 
     steps:
     - uses: actions/checkout@v3
 
-    - name: Install MFC Libraries
+    - name: Install MFC v143 Libraries
       run: |
         $vsPath = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -property installationPath
         $vsInstaller = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vs_installer.exe"
-        Start-Process $vsInstaller -ArgumentList "modify --installPath `"$vsPath`" --add Microsoft.VisualStudio.Component.VC.MFC --passive --norestart" -Wait
+        Start-Process $vsInstaller -ArgumentList "modify --installPath `"$vsPath`" --add Microsoft.VisualStudio.Component.VC.v143.MFC --quiet --norestart --noUpdateInstaller" -Wait
+
     - name: Add msbuild to PATH
       uses: microsoft/setup-msbuild@v2
-      
+
     - name: Run msbuild
       run: msbuild TrafficMonitor_Lite.sln -p:configuration="Release (lite)" -p:platform=x64 -p:platformToolset=v143
-      
+
     - name: Get current time
       uses: josStorer/get-current-time@v2.0.2
       id: current-time
       with:
         format: YYYYMMDD_HHmmss
         utcOffset: "+08:00"
-      
-    - name : Upload artifact
+
+    - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
         name: x64_${{ steps.current-time.outputs.formattedTime }}_TrafficMonitor
@@ -38,7 +38,7 @@ jobs:
           Bin/x64/Release (lite)/TrafficMonitor.exe
           Bin/x64/Release (lite)/*.dll
 
-    - name : Upload pdb files
+    - name: Upload pdb files
       uses: actions/upload-artifact@v4
       with:
         name: x64_${{ steps.current-time.outputs.formattedTime }}_pdb
@@ -50,34 +50,34 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-    - name: Install MFC Libraries
+    - name: Install MFC v143 Libraries
       run: |
         $vsPath = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -property installationPath
         $vsInstaller = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vs_installer.exe"
-        Start-Process $vsInstaller -ArgumentList "modify --installPath `"$vsPath`" --add Microsoft.VisualStudio.Component.VC.MFC --passive --norestart" -Wait
-        
+        Start-Process $vsInstaller -ArgumentList "modify --installPath `"$vsPath`" --add Microsoft.VisualStudio.Component.VC.v143.MFC --quiet --norestart --noUpdateInstaller" -Wait
+
     - name: Add msbuild to PATH
       uses: microsoft/setup-msbuild@v2
-      
+
     - name: Run msbuild
       run: msbuild TrafficMonitor_Lite.sln -p:configuration="Release (lite)" -p:platform=x86 -p:platformToolset=v143
-      
+
     - name: Get current time
       uses: josStorer/get-current-time@v2.0.2
       id: current-time
       with:
         format: YYYYMMDD_HHmmss
         utcOffset: "+08:00"
-      
-    - name : Upload artifact
+
+    - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
         name: x86_${{ steps.current-time.outputs.formattedTime }}_TrafficMonitor
         path: |
           Bin/Release (lite)/TrafficMonitor.exe
           Bin/Release (lite)/*.dll
-      
-    - name : Upload pdb files
+
+    - name: Upload pdb files
       uses: actions/upload-artifact@v4
       with:
         name: x86_${{ steps.current-time.outputs.formattedTime }}_pdb
@@ -89,18 +89,18 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-    - name: Install MFC Libraries
+    - name: Install MFC v143 Libraries (ARM64EC)
       run: |
         $vsPath = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -property installationPath
         $vsInstaller = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vs_installer.exe"
-        Start-Process $vsInstaller -ArgumentList "modify --installPath `"$vsPath`" --add Microsoft.VisualStudio.Component.VC.MFC --passive --norestart" -Wait
-      
+        Start-Process $vsInstaller -ArgumentList "modify --installPath `"$vsPath`" --add Microsoft.VisualStudio.Component.VC.v143.MFC --add Microsoft.VisualStudio.Component.VC.v143.MFC.ARM64 --quiet --norestart --noUpdateInstaller" -Wait
+
     - name: Add msbuild to PATH
       uses: microsoft/setup-msbuild@v2
-      
+
     - name: Run msbuild
       run: msbuild TrafficMonitor_Lite.sln -p:configuration="Release (lite)" -p:platform=ARM64EC -p:platformToolset=v143
-      
+
     - name: Get current time
       uses: josStorer/get-current-time@v2.0.2
       id: current-time
@@ -108,10 +108,7 @@ jobs:
         format: YYYYMMDD_HHmmss
         utcOffset: "+08:00"
 
-    # - name: Move dll file path 
-    #   run: mv Bin/x64/Release/*.dll  Bin/ARM64EC/Release/
-
-    - name : Upload artifact
+    - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
         name: arm64EC_${{ steps.current-time.outputs.formattedTime }}_TrafficMonitor
@@ -119,7 +116,7 @@ jobs:
           Bin/ARM64EC/Release (lite)/TrafficMonitor.exe
           Bin/ARM64EC/Release (lite)/*.dll
 
-    - name : Upload pdb files
+    - name: Upload pdb files
       uses: actions/upload-artifact@v4
       with:
         name: arm64EC_${{ steps.current-time.outputs.formattedTime }}_pdb
