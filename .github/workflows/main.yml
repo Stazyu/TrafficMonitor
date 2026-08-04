@@ -11,7 +11,17 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
-      
+
+    - name: Install MFC Libraries for x64
+      run: |
+        $vsPath = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
+        if ($vsPath) {
+          Write-Host "Installing MFC component to $vsPath..."
+          & "$vsPath\..\..\..\..\vs_installer.exe" modify --installPath "$vsPath" --add Microsoft.VisualStudio.Component.VC.MFC --quiet --norestart
+        } else {
+          Write-Host "Visual Studio not found!"
+          exit 1
+        }
     - name: Add msbuild to PATH
       uses: microsoft/setup-msbuild@v2
       
