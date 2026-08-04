@@ -13,9 +13,21 @@ jobs:
 
     - name: Install MFC v143 Libraries
       run: |
-       $vsPath = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -property installationPath
-       $vsInstaller = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vs_installer.exe"
-       Start-Process $vsInstaller -ArgumentList "modify --installPath `"$vsPath`" --add Microsoft.VisualStudio.Component.VC.v143.MFC --quiet --norestart --wait" -Wait
+        $vsPath = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -property installationPath
+        $vsInstaller = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vs_installer.exe"
+        $process = Start-Process -FilePath $vsInstaller -ArgumentList @(
+          "modify",
+          "--installPath", $vsPath,
+          "--add", "Microsoft.VisualStudio.Component.VC.v143.x86.x64",
+          "--add", "Microsoft.VisualStudio.Component.VC.v143.MFC",
+          "--quiet",
+          "--norestart",
+          "--wait"
+        ) -NoNewWindow -PassThru -Wait
+        if ($process.ExitCode -ne 0) {
+          Write-Error "VS Installer failed with exit code $($process.ExitCode)"
+          exit $process.ExitCode
+        }
 
     - name: Add msbuild to PATH
       uses: microsoft/setup-msbuild@v2
@@ -54,7 +66,19 @@ jobs:
       run: |
         $vsPath = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -property installationPath
         $vsInstaller = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vs_installer.exe"
-        Start-Process $vsInstaller -ArgumentList "modify --installPath `"$vsPath`" --add Microsoft.VisualStudio.Component.VC.v143.MFC --quiet --norestart --noUpdateInstaller" -Wait
+        $process = Start-Process -FilePath $vsInstaller -ArgumentList @(
+          "modify",
+          "--installPath", $vsPath,
+          "--add", "Microsoft.VisualStudio.Component.VC.v143.x86.x64",
+          "--add", "Microsoft.VisualStudio.Component.VC.v143.MFC",
+          "--quiet",
+          "--norestart",
+          "--wait"
+        ) -NoNewWindow -PassThru -Wait
+        if ($process.ExitCode -ne 0) {
+          Write-Error "VS Installer failed with exit code $($process.ExitCode)"
+          exit $process.ExitCode
+        }
 
     - name: Add msbuild to PATH
       uses: microsoft/setup-msbuild@v2
@@ -93,7 +117,21 @@ jobs:
       run: |
         $vsPath = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -property installationPath
         $vsInstaller = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vs_installer.exe"
-        Start-Process $vsInstaller -ArgumentList "modify --installPath `"$vsPath`" --add Microsoft.VisualStudio.Component.VC.v143.MFC --add Microsoft.VisualStudio.Component.VC.v143.MFC.ARM64 --quiet --norestart --noUpdateInstaller" -Wait
+        $process = Start-Process -FilePath $vsInstaller -ArgumentList @(
+          "modify",
+          "--installPath", $vsPath,
+          "--add", "Microsoft.VisualStudio.Component.VC.v143.x86.x64",
+          "--add", "Microsoft.VisualStudio.Component.VC.v143.MFC",
+          "--add", "Microsoft.VisualStudio.Component.VC.v143.ARM64",
+          "--add", "Microsoft.VisualStudio.Component.VC.v143.MFC.ARM64",
+          "--quiet",
+          "--norestart",
+          "--wait"
+        ) -NoNewWindow -PassThru -Wait
+        if ($process.ExitCode -ne 0) {
+          Write-Error "VS Installer failed with exit code $($process.ExitCode)"
+          exit $process.ExitCode
+        }
 
     - name: Add msbuild to PATH
       uses: microsoft/setup-msbuild@v2
