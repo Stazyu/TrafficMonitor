@@ -15,15 +15,18 @@ jobs:
       run: |
         $vsPath = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -property installationPath
         $vsInstaller = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vs_installer.exe"
+        
         $process = Start-Process -FilePath $vsInstaller -ArgumentList @(
           "modify",
-          "--installPath", $vsPath,
+          "--installPath", "`"$vsPath`"",
           "--add", "Microsoft.VisualStudio.Component.VC.v143.x86.x64",
           "--add", "Microsoft.VisualStudio.Component.VC.v143.MFC",
-          "--quiet",
+          "--noUpdateInstaller",
+          "--passive",
           "--norestart"
         ) -PassThru -Wait
-        if ($process.ExitCode -ne 0) {
+
+        if ($process.ExitCode -ne 0 -and $process.ExitCode -ne 3010) {
           Write-Error "VS Installer failed with exit code $($process.ExitCode)"
           exit $process.ExitCode
         }
@@ -65,15 +68,18 @@ jobs:
       run: |
         $vsPath = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -property installationPath
         $vsInstaller = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vs_installer.exe"
+        
         $process = Start-Process -FilePath $vsInstaller -ArgumentList @(
           "modify",
-          "--installPath", $vsPath,
+          "--installPath", "`"$vsPath`"",
           "--add", "Microsoft.VisualStudio.Component.VC.v143.x86.x64",
           "--add", "Microsoft.VisualStudio.Component.VC.v143.MFC",
-          "--quiet",
+          "--noUpdateInstaller",
+          "--passive",
           "--norestart"
         ) -PassThru -Wait
-        if ($process.ExitCode -ne 0) {
+
+        if ($process.ExitCode -ne 0 -and $process.ExitCode -ne 3010) {
           Write-Error "VS Installer failed with exit code $($process.ExitCode)"
           exit $process.ExitCode
         }
@@ -115,17 +121,20 @@ jobs:
       run: |
         $vsPath = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -property installationPath
         $vsInstaller = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vs_installer.exe"
+        
         $process = Start-Process -FilePath $vsInstaller -ArgumentList @(
           "modify",
-          "--installPath", $vsPath,
+          "--installPath", "`"$vsPath`"",
           "--add", "Microsoft.VisualStudio.Component.VC.v143.x86.x64",
           "--add", "Microsoft.VisualStudio.Component.VC.v143.MFC",
           "--add", "Microsoft.VisualStudio.Component.VC.v143.ARM64",
           "--add", "Microsoft.VisualStudio.Component.VC.v143.MFC.ARM64",
-          "--quiet",
+          "--noUpdateInstaller",
+          "--passive",
           "--norestart"
         ) -PassThru -Wait
-        if ($process.ExitCode -ne 0) {
+
+        if ($process.ExitCode -ne 0 -and $process.ExitCode -ne 3010) {
           Write-Error "VS Installer failed with exit code $($process.ExitCode)"
           exit $process.ExitCode
         }
